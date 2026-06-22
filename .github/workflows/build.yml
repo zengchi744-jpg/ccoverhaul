@@ -12,32 +12,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
+
+      - name: Add swap (prevent OOM)
+        run: |
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
 
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y git make gcc curl perl fakeroot dpkg-dev
+          sudo apt install -y git make gcc curl perl fakeroot p7zip-full
 
       - name: Install Theos
         run: |
-          git clone --recursive https://github.com/theos/theos.git /opt/theos
+          git clone --depth 1 --recursive https://github.com/theos/theos.git /opt/theos
           echo "THEOS=/opt/theos" >> $GITHUB_ENV
 
       - name: Get iOS SDK
         run: |
-          sudo apt install -y unzip
-          curl -L https://github.com/xybp888/iOS-SDKs/releases/download/13.1/iPhoneOS13.1.sdk.zip -o /tmp/sdk.zip
-          unzip -q /tmp/sdk.zip -d /opt/theos/sdks/
-          ls /opt/theos/sdks/
+          mkdir -p /opt/theos/sdks
+          curl -L --retry 3 \
+            https://github.com/xybp888/iOS-SDKs/releases/download/13.1/iPhoneOS13.1.sdk.zip \
+            -o /tmp/sdk.zip
+          ls -lh /tmp/sdk.zip
+          7z x /tmp/sdk.zip -o/opt/theos/sdks/ -y
+          ls -la /opt/theos/sdks/
 
       - name: Build tweak
         run: |
-          make package
+          make package THEOS=/opt/theos
           ls -la packages/
 
       - name: Upload .deb
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: CCOverhaul-deb
           path: packages/*.deb
