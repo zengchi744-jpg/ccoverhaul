@@ -1,0 +1,9 @@
+Package: com.yourrepo.ccoverhaul
+Name: CCOverhaul
+Version: 1.0.0
+Architecture: iphoneos-arm
+Description: Modernize Control Center with rounded corners & transparent modules inspired by iOS 18+ design
+Maintainer: Your Name
+Author: Your Name
+Section: Tweaks
+Depends: firmware (>= 13.0), mobilesubstrate (>= 0.9.7000)
